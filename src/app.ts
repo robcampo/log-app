@@ -47,11 +47,6 @@ export class App {
     this.store = new Store();
     this.root = root;
 
-    const channels = this.store.getChannels();
-    if (channels.length > 0) {
-      this.activeChannelId = channels[0].id;
-    }
-
     this.render();
     this.attachListeners();
   }
@@ -66,7 +61,7 @@ export class App {
       <div class="layout ${this.sidebarOpen ? 'sidebar-open' : ''}">
         ${this.renderSidebar(channels, activeChannel)}
         <div class="main">
-          ${activeChannel ? this.renderChannelView(activeChannel) : this.renderEmptyState()}
+          ${activeChannel ? this.renderChannelView(activeChannel) : this.renderHomeScreen(channels)}
         </div>
         ${this.modal ? this.renderModal(activeChannel) : ''}
         ${this.sidebarOpen ? '<div class="sidebar-backdrop" data-action="close-sidebar"></div>' : ''}
@@ -90,7 +85,7 @@ export class App {
   private renderSidebar(channels: Channel[], active: Channel | null): string {
     return `
       <aside class="sidebar">
-        <div class="sidebar-header">
+        <button class="sidebar-header" data-action="go-home">
           <span class="app-logo">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <rect x="2" y="2" width="16" height="16" rx="3" fill="currentColor" opacity="0.15"/>
@@ -98,7 +93,7 @@ export class App {
             </svg>
           </span>
           <span class="app-name">Log</span>
-        </div>
+        </button>
         <nav class="channel-list">
           ${channels.map(c => `
             <button
@@ -121,18 +116,68 @@ export class App {
     `;
   }
 
-  private renderEmptyState(): string {
-    return `
-      <div class="empty-state">
-        <div class="empty-icon">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <rect x="4" y="4" width="32" height="32" rx="8" fill="#E0E7FF"/>
-            <path d="M12 16h16M12 20h16M12 24h10" stroke="#6366F1" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+  private renderHomeScreen(channels: Channel[]): string {
+    if (channels.length === 0) {
+      return `
+        <div class="home-screen">
+          <div class="home-header">
+            <button class="menu-btn" data-action="toggle-sidebar" aria-label="Menu">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="home-empty">
+            <div class="empty-icon">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <rect x="4" y="4" width="32" height="32" rx="8" fill="#E0E7FF"/>
+                <path d="M12 16h16M12 20h16M12 24h10" stroke="#6366F1" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h2>No channels yet</h2>
+            <p>Create a channel to start logging</p>
+            <button class="btn btn-primary" data-action="open-create-channel">Create a channel</button>
+          </div>
         </div>
-        <h2>No channel selected</h2>
-        <p>Create a channel to start logging</p>
-        <button class="btn btn-primary" data-action="open-create-channel">Create a channel</button>
+      `;
+    }
+
+    return `
+      <div class="home-screen">
+        <div class="home-header">
+          <button class="menu-btn" data-action="toggle-sidebar" aria-label="Menu">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <h1 class="home-title">Channels</h1>
+          <button class="settings-btn" data-action="open-create-channel" aria-label="New channel">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 2v14M2 9h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="channel-cards">
+          ${channels.map(c => {
+            const entries = this.store.getEntries(c.id);
+            const last = entries[entries.length - 1];
+            const lastText = last
+              ? (last.type === 'note' ? last.text : last.presetName)
+              : null;
+            return `
+              <button class="channel-card" data-action="select-channel" data-channel-id="${c.id}">
+                <div class="channel-card-dot"></div>
+                <div class="channel-card-body">
+                  <span class="channel-card-name">${esc(c.name)}</span>
+                  ${lastText ? `<span class="channel-card-last">${esc(lastText.length > 60 ? lastText.slice(0, 60) + '…' : lastText)}</span>` : '<span class="channel-card-last channel-card-last--empty">No entries yet</span>'}
+                </div>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;color:var(--text-faint)">
+                  <path d="M4 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            `;
+          }).join('')}
+        </div>
       </div>
     `;
   }
@@ -150,8 +195,8 @@ export class App {
           <h1 class="channel-title">${esc(channel.name)}</h1>
           <button class="settings-btn" data-action="open-settings" aria-label="Settings">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <circle cx="9" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.697 3.697l1.414 1.414M12.889 12.889l1.414 1.414M3.697 14.303l1.414-1.414M12.889 5.111l1.414-1.414" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M7.352 2.56a1.72 1.72 0 0 1 3.296 0l.178.607a1.04 1.04 0 0 0 1.386.678l.578-.243a1.72 1.72 0 0 1 2.332 2.332l-.243.578a1.04 1.04 0 0 0 .678 1.386l.607.178a1.72 1.72 0 0 1 0 3.296l-.607.178a1.04 1.04 0 0 0-.678 1.386l.243.578a1.72 1.72 0 0 1-2.332 2.332l-.578-.243a1.04 1.04 0 0 0-1.386.678l-.178.607a1.72 1.72 0 0 1-3.296 0l-.178-.607a1.04 1.04 0 0 0-1.386-.678l-.578.243a1.72 1.72 0 0 1-2.332-2.332l.243-.578a1.04 1.04 0 0 0-.678-1.386l-.607-.178a1.72 1.72 0 0 1 0-3.296l.607-.178a1.04 1.04 0 0 0 .678-1.386l-.243-.578A1.72 1.72 0 0 1 5.21 3.845l.578.243a1.04 1.04 0 0 0 1.386-.678z" stroke="currentColor" stroke-width="1.4"/>
+              <circle cx="9" cy="9" r="2.25" stroke="currentColor" stroke-width="1.4"/>
             </svg>
           </button>
         </header>
@@ -426,6 +471,13 @@ export class App {
         this.sidebarOpen = false;
         this.render();
       }
+      return;
+    }
+
+    if (action === 'go-home') {
+      this.activeChannelId = null;
+      this.sidebarOpen = false;
+      this.render();
       return;
     }
 
