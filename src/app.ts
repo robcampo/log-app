@@ -47,8 +47,32 @@ export class App {
     this.store = new Store();
     this.root = root;
 
+    this.syncFromHash();
     this.render();
     this.attachListeners();
+
+    window.addEventListener('hashchange', () => {
+      this.syncFromHash();
+      this.modal = null;
+      this.render();
+    });
+  }
+
+  private syncFromHash(): void {
+    const hash = window.location.hash;
+    const match = hash.match(/^#\/channel\/(.+)$/);
+    if (match) {
+      const id = match[1];
+      const channel = this.store.getChannel(id);
+      this.activeChannelId = channel ? id : null;
+    } else {
+      this.activeChannelId = null;
+    }
+  }
+
+  private navigate(channelId: string | null): void {
+    const hash = channelId ? `#/channel/${channelId}` : '#/';
+    window.location.hash = hash;
   }
 
   private render(): void {
@@ -446,17 +470,15 @@ export class App {
     if (action === 'select-channel') {
       const id = target.dataset.channelId;
       if (id) {
-        this.activeChannelId = id;
         this.sidebarOpen = false;
-        this.render();
+        this.navigate(id);
       }
       return;
     }
 
     if (action === 'go-home') {
-      this.activeChannelId = null;
       this.sidebarOpen = false;
-      this.render();
+      this.navigate(null);
       return;
     }
 
@@ -518,10 +540,8 @@ export class App {
       if (!channel) return;
       if (!confirm(`Delete channel "${channel.name}"? This cannot be undone.`)) return;
       this.store.deleteChannel(this.activeChannelId);
-      const channels = this.store.getChannels();
-      this.activeChannelId = channels[0]?.id ?? null;
       this.modal = null;
-      this.render();
+      this.navigate(null);
       return;
     }
 
@@ -567,9 +587,8 @@ export class App {
       const name = input?.value.trim();
       if (!name) return;
       const channel = this.store.createChannel(name);
-      this.activeChannelId = channel.id;
       this.modal = null;
-      this.render();
+      this.navigate(channel.id);
       return;
     }
 
