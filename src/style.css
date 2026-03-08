@@ -267,6 +267,8 @@ body {
   border-radius: var(--radius-sm);
   cursor: pointer;
   flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1;
   transition: color 0.12s, background 0.12s;
 }
 

@@ -193,12 +193,7 @@ export class App {
             </svg>
           </button>
           <h1 class="channel-title">${esc(channel.name)}</h1>
-          <button class="settings-btn" data-action="open-settings" aria-label="Settings">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <path d="M7.352 2.56a1.72 1.72 0 0 1 3.296 0l.178.607a1.04 1.04 0 0 0 1.386.678l.578-.243a1.72 1.72 0 0 1 2.332 2.332l-.243.578a1.04 1.04 0 0 0 .678 1.386l.607.178a1.72 1.72 0 0 1 0 3.296l-.607.178a1.04 1.04 0 0 0-.678 1.386l.243.578a1.72 1.72 0 0 1-2.332 2.332l-.578-.243a1.04 1.04 0 0 0-1.386.678l-.178.607a1.72 1.72 0 0 1-3.296 0l-.178-.607a1.04 1.04 0 0 0-1.386-.678l-.578.243a1.72 1.72 0 0 1-2.332-2.332l.243-.578a1.04 1.04 0 0 0-.678-1.386l-.607-.178a1.72 1.72 0 0 1 0-3.296l.607-.178a1.04 1.04 0 0 0 .678-1.386l-.243-.578A1.72 1.72 0 0 1 5.21 3.845l.578.243a1.04 1.04 0 0 0 1.386-.678z" stroke="currentColor" stroke-width="1.4"/>
-              <circle cx="9" cy="9" r="2.25" stroke="currentColor" stroke-width="1.4"/>
-            </svg>
-          </button>
+          <button class="settings-btn" data-action="open-settings" aria-label="Settings">⚙︎</button>
         </header>
 
         <div class="feed" id="entry-feed">
