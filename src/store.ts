@@ -1,4 +1,4 @@
-import type { Channel, Entry, NoteEntry, PresetLogEntry, PersistedState, Preset, PresetField } from './types';
+import type { Channel, Entry, NoteEntry, PresetLogEntry, PersistedState, Preset } from './types';
 
 const STORAGE_KEY = 'log-app-v1';
 
@@ -60,26 +60,21 @@ export class Store {
     this.save();
   }
 
-  addPreset(channelId: string, name: string, fields: Omit<PresetField, 'id'>[]): Preset {
+  addPreset(channelId: string, name: string): Preset {
     const channel = this.state.channels.find(c => c.id === channelId);
     if (!channel) throw new Error('Channel not found');
-    const preset: Preset = {
-      id: uid(),
-      name: name.trim(),
-      fields: fields.map(f => ({ ...f, id: uid() })),
-    };
+    const preset: Preset = { id: uid(), name: name.trim() };
     channel.presets.push(preset);
     this.save();
     return preset;
   }
 
-  updatePreset(channelId: string, presetId: string, name: string, fields: PresetField[]): void {
+  updatePreset(channelId: string, presetId: string, name: string): void {
     const channel = this.state.channels.find(c => c.id === channelId);
     if (!channel) return;
     const preset = channel.presets.find(p => p.id === presetId);
     if (!preset) return;
     preset.name = name.trim();
-    preset.fields = fields;
     this.save();
   }
 
@@ -109,19 +104,13 @@ export class Store {
     return entry;
   }
 
-  addPresetLogEntry(
-    channelId: string,
-    presetId: string,
-    presetName: string,
-    values: Array<{ fieldId: string; fieldName: string; value: string; unit: string }>
-  ): Entry {
+  addPresetLogEntry(channelId: string, presetId: string, presetName: string): Entry {
     const entry: PresetLogEntry = {
       id: uid(),
       channelId,
       type: 'preset-log',
       presetId,
       presetName,
-      values,
       createdAt: Date.now(),
     };
     this.state.entries.push(entry);

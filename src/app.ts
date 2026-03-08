@@ -1,5 +1,5 @@
-import { Store, uid } from './store';
-import type { Channel, Entry, Modal, PresetField } from './types';
+import { Store } from './store';
+import type { Channel, Entry, Modal } from './types';
 
 function esc(str: string): string {
   return str
@@ -40,7 +40,6 @@ export class App {
   private activeChannelId: string | null = null;
   private modal: Modal = null;
 
-  private editingPresetFields: PresetField[] = [];
   private editingPresetName: string = '';
   private sidebarOpen: boolean = false;
 
@@ -81,10 +80,6 @@ export class App {
     if (this.modal?.type === 'create-channel') {
       const input = this.root.querySelector<HTMLInputElement>('#modal-channel-name');
       input?.focus();
-    }
-    if (this.modal?.type === 'preset-log') {
-      const first = this.root.querySelector<HTMLInputElement>('.preset-log-field');
-      first?.focus();
     }
     if (this.modal?.type === 'edit-preset') {
       const input = this.root.querySelector<HTMLInputElement>('#edit-preset-name');
@@ -169,7 +164,7 @@ export class App {
           ${channel.presets.length > 0 ? `
             <div class="preset-strip">
               ${channel.presets.map(p => `
-                <button class="preset-pill" data-action="open-preset-log" data-preset-id="${p.id}">
+                <button class="preset-pill" data-action="log-preset" data-preset-id="${p.id}">
                   ${esc(p.name)}
                 </button>
               `).join('')}
@@ -235,14 +230,10 @@ export class App {
         </div>
       `;
     } else {
-      const valueStr = entry.values
-        .map(v => `<span class="preset-value"><span class="preset-field-name">${esc(v.fieldName)}</span> <strong>${esc(v.value)}${v.unit ? `<span class="preset-unit"> ${esc(v.unit)}</span>` : ''}</strong></span>`)
-        .join('');
       return `
         <div class="entry entry-preset" data-entry-id="${entry.id}">
           <div class="entry-body">
             <span class="entry-preset-name">${esc(entry.presetName)}</span>
-            <div class="preset-values">${valueStr}</div>
           </div>
           <div class="entry-meta">
             <span class="entry-time">${time}</span>
@@ -277,42 +268,6 @@ export class App {
               <div class="modal-actions">
                 <button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>
                 <button type="submit" class="btn btn-primary">Create</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      `;
-    }
-
-    if (this.modal.type === 'preset-log') {
-      const preset = this.modal.preset;
-      return `
-        <div class="overlay" data-action="close-modal">
-          <div class="modal" data-stop-propagation>
-            <h2 class="modal-title">${esc(preset.name)}</h2>
-            <form data-action="submit-preset-log" data-preset-id="${preset.id}">
-              ${preset.fields.length === 0 ? `
-                <p class="modal-hint">No fields defined. Add fields in channel settings.</p>
-              ` : preset.fields.map((f, i) => `
-                <div class="field-row">
-                  <label class="field-label" for="preset-field-${f.id}">${esc(f.name)}${f.unit ? ` <span class="field-unit-hint">(${esc(f.unit)})</span>` : ''}</label>
-                  <input
-                    id="preset-field-${f.id}"
-                    class="field-input preset-log-field"
-                    type="${f.type === 'number' ? 'number' : 'text'}"
-                    placeholder="${f.type === 'number' ? '0' : '…'}"
-                    data-field-id="${f.id}"
-                    data-field-name="${esc(f.name)}"
-                    data-field-unit="${esc(f.unit)}"
-                    ${i === 0 ? 'autofocus' : ''}
-                    autocomplete="off"
-                    inputmode="${f.type === 'number' ? 'decimal' : 'text'}"
-                  />
-                </div>
-              `).join('')}
-              <div class="modal-actions">
-                <button type="button" class="btn btn-ghost" data-action="close-modal">Cancel</button>
-                <button type="submit" class="btn btn-primary" ${preset.fields.length === 0 ? 'disabled' : ''}>Log</button>
               </div>
             </form>
           </div>
@@ -360,7 +315,6 @@ export class App {
                 <div class="preset-row">
                   <div class="preset-row-info">
                     <span class="preset-row-name">${esc(p.name)}</span>
-                    <span class="preset-row-fields">${p.fields.length === 0 ? 'No fields' : p.fields.map(f => f.name + (f.unit ? ` (${f.unit})` : '')).join(', ')}</span>
                   </div>
                   <div class="preset-row-actions">
                     <button class="icon-btn" data-action="open-edit-preset" data-preset-id="${p.id}" aria-label="Edit preset">
@@ -390,66 +344,22 @@ export class App {
       const isNew = !this.modal.preset;
       return `
         <div class="overlay" data-action="close-modal">
-          <div class="modal modal-wide" data-stop-propagation>
+          <div class="modal" data-stop-propagation>
             <h2 class="modal-title">${isNew ? 'New preset' : 'Edit preset'}</h2>
+            <p class="modal-hint">The preset name is what gets logged — include everything in it, e.g. "5ml Calpol".</p>
             <form data-action="submit-edit-preset">
               <label class="field-label" for="edit-preset-name">Preset name</label>
               <input
                 id="edit-preset-name"
                 class="field-input"
                 type="text"
-                placeholder="e.g. Calpol"
+                placeholder="e.g. 5ml Calpol"
                 value="${esc(this.editingPresetName)}"
                 autocomplete="off"
               />
-
-              <div class="preset-fields-section">
-                <div class="preset-fields-header">
-                  <span class="field-label" style="margin:0">Fields</span>
-                  <button type="button" class="btn btn-sm btn-ghost" data-action="add-preset-field">+ Add field</button>
-                </div>
-                ${this.editingPresetFields.length === 0 ? `
-                  <p class="settings-empty" style="margin-top:8px">No fields — preset will log as a simple marker.</p>
-                ` : this.editingPresetFields.map((f, i) => `
-                  <div class="field-editor-row" data-field-index="${i}">
-                    <input
-                      class="field-input field-editor-name"
-                      type="text"
-                      placeholder="Field name"
-                      value="${esc(f.name)}"
-                      data-action="update-field-name"
-                      data-field-index="${i}"
-                      autocomplete="off"
-                    />
-                    <select
-                      class="field-select"
-                      data-action="update-field-type"
-                      data-field-index="${i}"
-                    >
-                      <option value="text" ${f.type === 'text' ? 'selected' : ''}>Text</option>
-                      <option value="number" ${f.type === 'number' ? 'selected' : ''}>Number</option>
-                    </select>
-                    <input
-                      class="field-input field-editor-unit"
-                      type="text"
-                      placeholder="Unit"
-                      value="${esc(f.unit)}"
-                      data-action="update-field-unit"
-                      data-field-index="${i}"
-                      autocomplete="off"
-                    />
-                    <button type="button" class="icon-btn icon-btn-danger" data-action="remove-preset-field" data-field-index="${i}" aria-label="Remove field">
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                `).join('')}
-              </div>
-
               <div class="modal-actions">
                 <button type="button" class="btn btn-ghost" data-action="close-to-settings">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save preset</button>
+                <button type="submit" class="btn btn-primary">Save</button>
               </div>
             </form>
           </div>
@@ -472,7 +382,6 @@ export class App {
     this.root.addEventListener('submit', e => this.handleSubmit(e));
     this.root.addEventListener('input', e => this.handleInput(e));
     this.root.addEventListener('keydown', e => this.handleKeydown(e));
-    this.root.addEventListener('change', e => this.handleChange(e));
   }
 
   private getTarget(e: Event): HTMLElement | null {
@@ -532,14 +441,15 @@ export class App {
       return;
     }
 
-    if (action === 'open-preset-log') {
+    if (action === 'log-preset') {
       const presetId = target.dataset.presetId;
       if (!presetId || !this.activeChannelId) return;
       const channel = this.store.getChannel(this.activeChannelId);
       const preset = channel?.presets.find(p => p.id === presetId);
       if (preset) {
-        this.modal = { type: 'preset-log', preset };
+        this.store.addPresetLogEntry(this.activeChannelId, preset.id, preset.name);
         this.render();
+        this.scrollFeedToBottom();
       }
       return;
     }
@@ -551,7 +461,6 @@ export class App {
       if (!channel) return;
       const existing = presetId ? channel.presets.find(p => p.id === presetId) ?? null : null;
       this.editingPresetName = existing?.name ?? '';
-      this.editingPresetFields = existing ? existing.fields.map(f => ({ ...f })) : [];
       this.modal = { type: 'edit-preset', preset: existing };
       this.render();
       return;
@@ -603,24 +512,6 @@ export class App {
       return;
     }
 
-    if (action === 'add-preset-field') {
-      this.syncEditingFields();
-      this.editingPresetFields.push({ id: uid(), name: '', type: 'text', unit: '' });
-      this.render();
-      const lastInput = this.root.querySelectorAll<HTMLInputElement>('.field-editor-name');
-      lastInput[lastInput.length - 1]?.focus();
-      return;
-    }
-
-    if (action === 'remove-preset-field') {
-      this.syncEditingFields();
-      const idx = parseInt(target.dataset.fieldIndex ?? '', 10);
-      if (!isNaN(idx)) {
-        this.editingPresetFields.splice(idx, 1);
-        this.render();
-      }
-      return;
-    }
   }
 
   private handleSubmit(e: SubmitEvent): void {
@@ -651,26 +542,8 @@ export class App {
       return;
     }
 
-    if (action === 'submit-preset-log') {
-      if (!this.activeChannelId || this.modal?.type !== 'preset-log') return;
-      const preset = this.modal.preset;
-      const fieldInputs = this.root.querySelectorAll<HTMLInputElement>('.preset-log-field');
-      const values = Array.from(fieldInputs).map(input => ({
-        fieldId: input.dataset.fieldId ?? '',
-        fieldName: input.dataset.fieldName ?? '',
-        value: input.value.trim(),
-        unit: input.dataset.fieldUnit ?? '',
-      }));
-      this.store.addPresetLogEntry(this.activeChannelId, preset.id, preset.name, values);
-      this.modal = null;
-      this.render();
-      this.scrollFeedToBottom();
-      return;
-    }
-
     if (action === 'submit-edit-preset') {
       if (!this.activeChannelId) return;
-      this.syncEditingFields();
       const nameInput = this.root.querySelector<HTMLInputElement>('#edit-preset-name');
       const name = nameInput?.value.trim() ?? this.editingPresetName;
       if (!name) {
@@ -680,9 +553,9 @@ export class App {
       if (this.modal?.type === 'edit-preset') {
         const existing = this.modal.preset;
         if (existing) {
-          this.store.updatePreset(this.activeChannelId, existing.id, name, this.editingPresetFields);
+          this.store.updatePreset(this.activeChannelId, existing.id, name);
         } else {
-          this.store.addPreset(this.activeChannelId, name, this.editingPresetFields);
+          this.store.addPreset(this.activeChannelId, name);
         }
       }
       this.modal = { type: 'channel-settings' };
@@ -693,33 +566,9 @@ export class App {
 
   private handleInput(e: Event): void {
     const target = e.target as HTMLElement;
-
     if (target instanceof HTMLTextAreaElement && target.id === 'note-input') {
       target.style.height = 'auto';
       target.style.height = Math.min(target.scrollHeight, 120) + 'px';
-      return;
-    }
-
-    const action = target.dataset.action;
-    const idx = parseInt(target.dataset.fieldIndex ?? '', 10);
-
-    if (action === 'update-field-name' && !isNaN(idx)) {
-      this.editingPresetFields[idx].name = (target as HTMLInputElement).value;
-      return;
-    }
-    if (action === 'update-field-unit' && !isNaN(idx)) {
-      this.editingPresetFields[idx].unit = (target as HTMLInputElement).value;
-      return;
-    }
-  }
-
-  private handleChange(e: Event): void {
-    const target = e.target as HTMLElement;
-    const action = target.dataset.action;
-    const idx = parseInt(target.dataset.fieldIndex ?? '', 10);
-
-    if (action === 'update-field-type' && !isNaN(idx)) {
-      this.editingPresetFields[idx].type = (target as HTMLSelectElement).value as 'text' | 'number';
     }
   }
 
@@ -751,21 +600,4 @@ export class App {
     }
   }
 
-  private syncEditingFields(): void {
-    const rows = this.root.querySelectorAll<HTMLElement>('.field-editor-row');
-    rows.forEach((row, i) => {
-      const nameInput = row.querySelector<HTMLInputElement>('.field-editor-name');
-      const unitInput = row.querySelector<HTMLInputElement>('.field-editor-unit');
-      const typeSelect = row.querySelector<HTMLSelectElement>('.field-select');
-      if (nameInput && this.editingPresetFields[i]) {
-        this.editingPresetFields[i].name = nameInput.value;
-      }
-      if (unitInput && this.editingPresetFields[i]) {
-        this.editingPresetFields[i].unit = unitInput.value;
-      }
-      if (typeSelect && this.editingPresetFields[i]) {
-        this.editingPresetFields[i].type = typeSelect.value as 'text' | 'number';
-      }
-    });
-  }
 }

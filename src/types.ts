@@ -8,14 +8,6 @@ export interface Channel {
 export interface Preset {
   id: string;
   name: string;
-  fields: PresetField[];
-}
-
-export interface PresetField {
-  id: string;
-  name: string;
-  type: 'text' | 'number';
-  unit: string;
 }
 
 export interface NoteEntry {
@@ -32,7 +24,6 @@ export interface PresetLogEntry {
   type: 'preset-log';
   presetId: string;
   presetName: string;
-  values: Array<{ fieldId: string; fieldName: string; value: string; unit: string }>;
   createdAt: number;
 }
 
@@ -46,6 +37,5 @@ export interface PersistedState {
 export type Modal =
   | null
   | { type: 'create-channel' }
-  | { type: 'preset-log'; preset: Preset }
   | { type: 'channel-settings' }
   | { type: 'edit-preset'; preset: Preset | null };
