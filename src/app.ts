@@ -349,7 +349,7 @@ export class App {
                     <span class="preset-row-name">${esc(p.name)}</span>
                   </div>
                   <div class="preset-row-actions">
-                    <button class="icon-btn" data-action="open-edit-preset" data-preset-id="${p.id}" aria-label="Edit preset">🖊️</button>
+                    <button class="icon-btn" data-action="open-edit-preset" data-preset-id="${p.id}" aria-label="Edit preset">✏️</button>
                     <button class="icon-btn icon-btn-danger" data-action="delete-preset" data-preset-id="${p.id}" aria-label="Delete preset">🗑️</button>
                   </div>
                 </div>
