@@ -1,6 +1,13 @@
 import { Store } from './store';
 import type { Channel, Entry, Modal } from './types';
 
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 function esc(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -62,17 +69,22 @@ export class App {
     const hash = window.location.hash;
     const match = hash.match(/^#\/channel\/(.+)$/);
     if (match) {
-      const id = match[1];
-      const channel = this.store.getChannel(id);
-      this.activeChannelId = channel ? id : null;
+      const slug = match[1];
+      const channel = this.store.getChannels().find(c => slugify(c.name) === slug);
+      this.activeChannelId = channel?.id ?? null;
     } else {
       this.activeChannelId = null;
     }
   }
 
   private navigate(channelId: string | null): void {
-    const hash = channelId ? `#/channel/${channelId}` : '#/';
-    window.location.hash = hash;
+    if (channelId) {
+      const channel = this.store.getChannel(channelId);
+      const slug = channel ? slugify(channel.name) : channelId;
+      window.location.hash = `#/channel/${slug}`;
+    } else {
+      window.location.hash = '#/';
+    }
   }
 
   private render(): void {
