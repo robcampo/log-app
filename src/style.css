@@ -259,17 +259,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: transparent;
-  color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 22px;
   line-height: 1;
-  transition: color 0.12s, background 0.12s;
+  transition: opacity 0.12s;
+}
+
+.settings-btn:hover {
+  opacity: 0.7;
 }
 
 .settings-btn:hover {
@@ -419,21 +422,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   border: none;
   background: transparent;
-  color: var(--text-faint);
   border-radius: 4px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.1s, color 0.1s, background 0.1s;
+  font-size: 15px;
+  transition: opacity 0.1s;
   flex-shrink: 0;
 }
 
 .entry-delete:hover {
-  color: var(--danger);
-  background: var(--danger-light);
+  opacity: 1 !important;
 }
 
 /* ─── Input area ─────────────────────────────────────────── */
@@ -1007,25 +1009,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
   background: transparent;
-  color: var(--text-muted);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: color 0.12s, background 0.12s;
+  font-size: 16px;
+  transition: opacity 0.12s;
   flex-shrink: 0;
 }
 
 .icon-btn:hover {
-  color: var(--text);
-  background: var(--bg);
-}
-
-.icon-btn-danger:hover {
-  color: var(--danger);
-  background: var(--danger-light);
+  opacity: 0.7;
 }
 
 /* ─── Sidebar backdrop (mobile) ───────────────────────────── */

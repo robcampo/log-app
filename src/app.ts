@@ -193,7 +193,7 @@ export class App {
             </svg>
           </button>
           <h1 class="channel-title">${esc(channel.name)}</h1>
-          <button class="settings-btn" data-action="open-settings" aria-label="Settings">⚙︎</button>
+          <button class="settings-btn" data-action="open-settings" aria-label="Settings">⚙️</button>
         </header>
 
         <div class="feed" id="entry-feed">
@@ -261,11 +261,7 @@ export class App {
           </div>
           <div class="entry-meta">
             <span class="entry-time">${time}</span>
-            <button class="entry-delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="Delete">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </button>
+            <button class="entry-delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="Delete">🗑️</button>
           </div>
         </div>
       `;
@@ -277,11 +273,7 @@ export class App {
           </div>
           <div class="entry-meta">
             <span class="entry-time">${time}</span>
-            <button class="entry-delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="Delete">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-            </button>
+            <button class="entry-delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="Delete">🗑️</button>
           </div>
         </div>
       `;
@@ -357,16 +349,8 @@ export class App {
                     <span class="preset-row-name">${esc(p.name)}</span>
                   </div>
                   <div class="preset-row-actions">
-                    <button class="icon-btn" data-action="open-edit-preset" data-preset-id="${p.id}" aria-label="Edit preset">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M9.5 1.5l3 3L4 13H1v-3L9.5 1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
-                      </svg>
-                    </button>
-                    <button class="icon-btn icon-btn-danger" data-action="delete-preset" data-preset-id="${p.id}" aria-label="Delete preset">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M1 3.5h12M5 3.5V2h4v1.5M2.5 3.5l.9 8.5h5.2l.9-8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    </button>
+                    <button class="icon-btn" data-action="open-edit-preset" data-preset-id="${p.id}" aria-label="Edit preset">🖊️</button>
+                    <button class="icon-btn icon-btn-danger" data-action="delete-preset" data-preset-id="${p.id}" aria-label="Delete preset">🗑️</button>
                   </div>
                 </div>
               `).join('')}
