@@ -289,6 +289,10 @@ export class App {
 
   private renderEntry(entry: Entry): string {
     const time = formatTime(entry.createdAt);
+    const actions = `
+      <button class="entry-action" data-action="share-entry" data-entry-id="${entry.id}" aria-label="Share">📤</button>
+      <button class="entry-action entry-action--delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="Delete">🗑️</button>
+    `;
     if (entry.type === 'note') {
       return `
         <div class="entry entry-note" data-entry-id="${entry.id}">
@@ -297,7 +301,7 @@ export class App {
           </div>
           <div class="entry-meta">
             <span class="entry-time">${time}</span>
-            <button class="entry-delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="Delete">🗑️</button>
+            ${actions}
           </div>
         </div>
       `;
@@ -309,7 +313,7 @@ export class App {
           </div>
           <div class="entry-meta">
             <span class="entry-time">${time}</span>
-            <button class="entry-delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="Delete">🗑️</button>
+            ${actions}
           </div>
         </div>
       `;
@@ -563,6 +567,27 @@ export class App {
       this.store.deletePreset(this.activeChannelId, presetId);
       this.modal = { type: 'channel-settings' };
       this.render();
+      return;
+    }
+
+    if (action === 'share-entry') {
+      const entryId = target.dataset.entryId;
+      if (!entryId || !this.activeChannelId) return;
+      const channel = this.store.getChannel(this.activeChannelId);
+      const entries = this.store.getEntries(this.activeChannelId);
+      const entry = entries.find(e => e.id === entryId);
+      if (!channel || !entry) return;
+      const content = entry.type === 'note' ? entry.text : entry.presetName;
+      const text = `${channel.name}\n${content} · ${formatTime(entry.createdAt)}`;
+      if (navigator.share) {
+        navigator.share({ text }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = target as HTMLButtonElement;
+          btn.textContent = '✓';
+          setTimeout(() => { btn.textContent = '📤'; }, 1500);
+        });
+      }
       return;
     }
 
