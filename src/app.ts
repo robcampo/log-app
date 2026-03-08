@@ -291,7 +291,6 @@ export class App {
     const time = formatTime(entry.createdAt);
     const actions = `
       <button class="entry-action" data-action="share-entry" data-entry-id="${entry.id}" aria-label="Share">📤</button>
-      <button class="entry-action entry-action--delete" data-action="delete-entry" data-entry-id="${entry.id}" aria-label="Delete">🗑️</button>
     `;
     if (entry.type === 'note') {
       return `
