@@ -35,7 +35,22 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        // Only precache JS/CSS/images — they have content hashes so cache-busting is automatic
+        globPatterns: ['**/*.{js,css,svg,png}'],
+        // Always fetch HTML from the network first; fall back to cache when offline
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages',
+              networkTimeoutSeconds: 3,
+            },
+          },
+        ],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
       },
     }),
   ],
